@@ -10,6 +10,9 @@
 #include "Boulder.h"
 #include <filesystem>
 #include "Vec2.h"
+#include <stdlib.h>
+#include <time.h>
+#include <stdio.h>
 
 const std::string SPRITES_LOCATION = "./sprites/";
 
@@ -20,6 +23,7 @@ class Game {
     }
     
     bool Initialize() {
+        srand((unsigned)time(NULL));
         SDL_Init(SDL_INIT_EVERYTHING);
         SDL_DisplayMode DM;
         SDL_GetCurrentDisplayMode(0, &DM);
@@ -116,7 +120,7 @@ class Game {
         Values.MovementLastFrame = movementVector;
         background->Update();
 
-        
+
     }
     void Draw() {
         SDL_RenderClear(Values.Renderer);

@@ -45,6 +45,11 @@ class GameValues {
     }
 };
 
+int Random(int floor, int max) {
+    int range = max - floor + 1;
+    return rand() % range + floor;
+}
+
 GameValues Values;
 
 #endif

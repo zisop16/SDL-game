@@ -8,6 +8,9 @@
 
 class Boulder : public Character {
     public:
+    Boulder() {
+        Boulder(Zero, Zero, Random(0, 4));
+    }
     // There are 5 boulders in the spritesheet, so type ranges from 0->5
     Boulder(Vec2 position, Vec2 velocity, int type) {
         SDL_Rect source;
