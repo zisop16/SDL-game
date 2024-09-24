@@ -10,6 +10,7 @@
 #include "Boulder.h"
 #include <filesystem>
 #include "Vec2.h"
+#include "Projectile.h"
 #include <stdlib.h>
 #include <time.h>
 #include <stdio.h>
@@ -49,15 +50,30 @@ class Game {
         Values.BackgroundTexture = IMG_LoadTexture(Values.Renderer, stars.c_str());
         player = new Player();
         background = new Background();
-        Vec2 boulderVelocity(0, 0);
         Vec2 boulderPosition(5, 4);
-        boulder = new Boulder(boulderPosition, boulderVelocity, 4);
+        boulder = new Boulder();
+        boulder->position = boulderPosition;
+        proj = new Projectile(1);
+        proj->position.x = 5;
+        proj->position.y = 5;
         
         return true;
 
     }
     void Update() {
         const Uint8* keyPresses = SDL_GetKeyboardState(NULL);
+        int mouseX, mouseY;
+        Uint32 mouseButtons = SDL_GetMouseState(&mouseX, &mouseY);
+        Values.LeftClick = mouseButtons & 0b1;
+        // We have a LeftClickRegistered bool stored
+        // This will prevent 1 click from being registered multiple times
+        // When the button is held down
+        if (!Values.LeftClick) {
+            Values.LeftClickRegistered = false;
+        }
+        Vec2 position(mouseX, mouseY);
+        Values.MousePosition = position;
+        
         bool moveUp = keyPresses[SDL_SCANCODE_W];
         bool moveDown = keyPresses[SDL_SCANCODE_S];
         bool moveLeft = keyPresses[SDL_SCANCODE_A];
@@ -128,6 +144,7 @@ class Game {
         background->Draw();
         player->Draw();
         boulder->Draw();
+        proj->Draw();
 
         SDL_RenderPresent(Values.Renderer);
         
@@ -146,6 +163,9 @@ class Game {
 
             Values.CurrentTime = SDL_GetTicks() / 1000.;
             Values.DeltaTime = Values.CurrentTime - Values.LastFrameTime;
+            if (Values.DeltaTime > .25) {
+                Values.DeltaTime = .25;
+            }
             Update();
             Draw();
             Values.LastFrameTime = Values.CurrentTime;
@@ -160,6 +180,7 @@ class Game {
         delete player;
         delete background;
         delete boulder;
+        delete proj;
     }
     
     private:
@@ -167,6 +188,7 @@ class Game {
     Player* player;
     Background* background;
     Boulder* boulder;
+    Projectile* proj;
 };
 
 #endif

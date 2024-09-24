@@ -17,8 +17,9 @@ class Player : public Character {
         sprite = new Sprite(Values.Spritesheet, playerSpriteSource);
         position.x = 8;
         position.y = 2;
-        height = .5;
-        width = height * 16. / 6;
+        float scale = .5;
+        height = scale;
+        width = scale * 16. / 6;
         rotation = 0;
         // meters per second
         speed = 3;

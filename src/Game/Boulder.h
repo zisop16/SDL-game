@@ -8,8 +8,7 @@
 
 class Boulder : public Character {
     public:
-    Boulder() {
-        Boulder(Zero, Zero, Random(0, 4));
+    Boulder() : Boulder(Zero, Zero, Random(0, 4)) {
     }
     // There are 5 boulders in the spritesheet, so type ranges from 0->5
     Boulder(Vec2 position, Vec2 velocity, int type) {
@@ -51,8 +50,9 @@ class Boulder : public Character {
                 break;
             }
         }
-        height = source.h / 10.;
-        width = source.w / 10.;
+        float scale = 1/20.;
+        height = source.h * scale;
+        width = source.w * scale;
         rotation = 0;
         this->position = position;
         sprite = new Sprite(Values.Spritesheet, source);

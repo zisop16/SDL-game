@@ -12,6 +12,9 @@ class GameValues {
     SDL_Texture* Spritesheet;
     int Width;
     int Height;
+    bool LeftClick;
+    bool LeftClickRegistered;
+    Vec2 MousePosition;
     Vec2 MovementLastFrame;
     bool VerticalMovementSwapped;
     bool HorizontalMovementSwapped;
