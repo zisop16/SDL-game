@@ -4,8 +4,9 @@
 #include <iostream>
 #include "Character.h"
 #include "Sprite.h"
+#include "Collidable.h"
 
-class Player {
+class Player : public Collidable {
     public:
     Player() {
         SDL_Rect playerSpriteSource;
@@ -14,10 +15,12 @@ class Player {
         playerSpriteSource.w = 16;
         playerSpriteSource.h = 6;
         sprite = new Sprite(Values.Spritesheet, playerSpriteSource);
-        Vec2 initialPosition (8, 2);
-        float height = .5;
-        float width = height * 16. / 6;
-        playerCharacter = new Character(sprite, initialPosition, 1, .5);
+        position.x = 8;
+        position.y = 2;
+        rotation = 0;
+        height = .5;
+        width = height * 16. / 6;
+        playerCharacter = new Character(sprite, position, 1, .5);
         // meters per second
         speed = 3;
     }
@@ -30,6 +33,7 @@ class Player {
     // direction is a unit vector pointing in a cardinal direction
     void Move(Vec2 direction) {
         playerCharacter->Position += direction * speed * Values.DeltaTime;
+        position = playerCharacter->Position;
     }
     ~Player() {
         delete sprite;

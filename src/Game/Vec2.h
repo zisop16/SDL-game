@@ -19,7 +19,7 @@ class Vec2 {
         x = std::cos(angle);
         y = std::sin(angle);
     }
-    Vec2(Vec2& v)
+    Vec2(const Vec2& v)
     {
         x = v.x;
         y = v.y;

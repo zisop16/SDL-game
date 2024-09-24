@@ -4,8 +4,9 @@
 #include "Sprite.h"
 #include "Vec2.h"
 #include "Character.h"
+#include "Collidable.h"
 
-class Boulder {
+class Boulder : public Collidable {
     public:
     // There are 5 boulders in the spritesheet, so type ranges from 0->5
     Boulder(Vec2 position, Vec2 velocity, int type) {
@@ -49,6 +50,8 @@ class Boulder {
         }
         height = source.h / 10.;
         width = source.w / 10.;
+        rotation = 0;
+        this->position = position;
         sprite = new Sprite(Values.Spritesheet, source);
         boulderCharacter = new Character(sprite, position, width, height);
     }
@@ -57,6 +60,7 @@ class Boulder {
     }
     void Update() {
         boulderCharacter->Position += Velocity * Values.DeltaTime;
+        position = boulderCharacter->Position;
     }
     Vec2 Velocity;
     ~Boulder() {
@@ -64,8 +68,6 @@ class Boulder {
         delete boulderCharacter;
     }
     private:
-    float width;
-    float height;
     Sprite* sprite;
     Character* boulderCharacter;
 };
