@@ -59,33 +59,61 @@ class Game {
         bool moveLeft = keyPresses[SDL_SCANCODE_A];
         bool moveRight = keyPresses[SDL_SCANCODE_D];
         Vec2 movementVector;
+        bool movingUp = Values.MovementLastFrame.y  > 0;
+        bool movingDown = Values.MovementLastFrame.y  < 0;
+        bool movingRight = Values.MovementLastFrame.x > 0;
+        bool movingLeft = Values.MovementLastFrame.x < 0;
         if (moveUp && moveDown) {
-            // If we were moving down last frame, we will swap directions
-            if (Values.MovementLastFrame.y < 0) {
-                movementVector.y = 1;
+            if (!Values.VerticalMovementSwapped) {
+                // If we were moving down last frame, we will swap directions
+                if (Values.MovementLastFrame.y < 0) {
+                    movementVector.y = 1;
+                } else {
+                    movementVector.y = -1;
+                }
+                Values.VerticalMovementSwapped = true;
             } else {
-                movementVector.y = -1;
+                if (Values.MovementLastFrame.y < 0) {
+                    movementVector.y = -1;
+                } else {
+                    movementVector.y = +1;
+                }
             }
         } else if (moveUp) {
             movementVector.y = 1;
+            Values.VerticalMovementSwapped = false;
         } else if (moveDown) {
             movementVector.y = -1;
+            Values.VerticalMovementSwapped = false;
         }
         if (moveLeft && moveRight) {
-            if (Values.MovementLastFrame.x < 0) {
-                movementVector.x = 1;
+            if (!Values.HorizontalMovementSwapped) {
+                if (Values.MovementLastFrame.x < 0) {
+                    movementVector.x = 1;
+                } else {
+                    movementVector.x = -1;
+                }
+                Values.HorizontalMovementSwapped = true;
+            // If we have already swapped movement direction, we will persist the movement direction we swapped to
             } else {
-                movementVector.x = -1;
-            } 
+                if (Values.MovementLastFrame.x < 0) {
+                    movementVector.x = -1;
+                } else {
+                    movementVector.x = 1;
+                }
+            }
         } else if (moveLeft) {
             movementVector.x = -1;
+            Values.HorizontalMovementSwapped = false;
         } else if (moveRight) {
             movementVector.x = 1;
+            Values.HorizontalMovementSwapped = false;
         }
         if (movementVector != Zero) {
             movementVector.Normalize();
         }
         player->Move(movementVector);
+        Values.MovementLastFrame = movementVector;
         background->Update();
     }
     void Draw() {

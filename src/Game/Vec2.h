@@ -78,6 +78,9 @@ class Vec2 {
     float Length() {
         return sqrt(x * x + y * y);
     }
+    float dot(const Vec2& other) {
+        return x * other.x + y * other.y;
+    }
     void Normalize() {
         float len = Length();
         x /= len;

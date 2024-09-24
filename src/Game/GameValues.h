@@ -13,6 +13,8 @@ class GameValues {
     int Width;
     int Height;
     Vec2 MovementLastFrame;
+    bool VerticalMovementSwapped;
+    bool HorizontalMovementSwapped;
     // Time measured in seconds
     float LastFrameTime;
     float CurrentTime;
