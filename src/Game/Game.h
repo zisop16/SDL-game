@@ -5,9 +5,12 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include "Player.h"
+#include "Background.h"
 #include "GameValues.h"
+#include <filesystem>
+#include "Vec2.h"
 
-const std::string SPRITES_LOCATION = "../../../sprites/";
+const std::string SPRITES_LOCATION = "./sprites/";
 
 class Game {
     public:
@@ -21,52 +24,98 @@ class Game {
         SDL_GetCurrentDisplayMode(0, &DM);
         // values->Width = DM.w;
         // values->Height = DM.h;
-        values->Width = 1600;
-        values->Height = 900;
-        window = SDL_CreateWindow("Classic Game", 100, 100, values->Width, values->Height, SDL_WINDOW_ALLOW_HIGHDPI);
+        Values.Width = 1600;
+        Values.Height = 900;
+        window = SDL_CreateWindow("Classic Game", 100, 100, Values.Width, Values.Height, SDL_WINDOW_ALLOW_HIGHDPI);
         // SDL_SetWindowFullscreen(window, SDL_TRUE);
         if (window == NULL) {
             std::cout << "Could not create window: " << SDL_GetError() << std::endl;
             return false;
         }
         
-        values->Renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-        if (values->Renderer == NULL) {
+        Values.Renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+        if (Values.Renderer == NULL) {
             std::cout << "Could not create renderer: " << SDL_GetError() << std::endl;
             return false;
         }
-        
-        SDL_Texture* spritesheet = IMG_LoadTexture(values->Renderer, (SPRITES_LOCATION + "pico8_invaders_sprites.png").c_str());
-        player = new Player(values, spritesheet);
+        std::string sprites = SPRITES_LOCATION + "pico8_invaders_sprites.png";
+        std::string stars = SPRITES_LOCATION + "background.png";
+        SDL_Texture* spritesheet = IMG_LoadTexture(Values.Renderer, sprites.c_str());
+        SDL_Texture* starTexture = IMG_LoadTexture(Values.Renderer, stars.c_str());
+        player = new Player(spritesheet);
+        background = new Background(starTexture);
         
         return true;
 
     }
+    void Update() {
+        const Uint8* keyPresses = SDL_GetKeyboardState(NULL);
+        bool moveUp = keyPresses[SDL_SCANCODE_W];
+        bool moveDown = keyPresses[SDL_SCANCODE_S];
+        bool moveLeft = keyPresses[SDL_SCANCODE_A];
+        bool moveRight = keyPresses[SDL_SCANCODE_D];
+        Vec2 movementVector;
+        if (moveUp && moveDown) {
+            // If we were moving down last frame, we will swap directions
+            if (Values.MovementLastFrame.y < 0) {
+                movementVector.y = 1;
+            } else {
+                movementVector.y = -1;
+            }
+        } else if (moveUp) {
+            movementVector.y = 1;
+        } else if (moveDown) {
+            movementVector.y = -1;
+        }
+        if (moveLeft && moveRight) {
+            if (Values.MovementLastFrame.x < 0) {
+                movementVector.x = 1;
+            } else {
+                movementVector.x = -1;
+            } 
+        } else if (moveLeft) {
+            movementVector.x = -1;
+        } else if (moveRight) {
+            movementVector.x = 1;
+        }
+        if (movementVector != Zero) {
+            movementVector.Normalize();
+        }
+        player->Move(movementVector);
+        background->Update();
+    }
+    void Draw() {
+        SDL_RenderClear(Values.Renderer);
+
+        background->Draw();
+        player->Draw();
+
+        SDL_RenderPresent(Values.Renderer);
+        
+    }
     void RunLoop() {
         SDL_Event event;
+        Values.LastFrameTime = SDL_GetTicks() / 1000.;
         while (true) {
             if (SDL_PollEvent(&event)) {
                 if (event.type == SDL_QUIT) {
                     break;
                 }
-                if (event.type == SDL_KEYDOWN) {
-                    std::cout << SDL_GetKeyName(event.key.keysym.sym) << std::endl;
-                }
             }
+
+            
+
+            Values.CurrentTime = SDL_GetTicks() / 1000.;
+            Values.DeltaTime = Values.CurrentTime - Values.LastFrameTime;
+            Update();
+            Draw();
+            Values.LastFrameTime = Values.CurrentTime;
         }
-        SDL_SetRenderDrawColor(values->Renderer, 255, 255, 255, 255);
-        SDL_RenderClear(values->Renderer);
-
-        player->Draw();
-
-        SDL_RenderPresent(values->Renderer);
     }
     void Shutdown() {
         SDL_DestroyWindow(window);
         SDL_Quit();
     }
-
-    GameValues* values;
 
     ~Game() {
         delete player;
@@ -75,6 +124,7 @@ class Game {
     private:
     SDL_Window* window;
     Player* player;
+    Background* background;
 };
 
 #endif

@@ -8,19 +8,20 @@
 
 class Character {
     public:
-    Character(Sprite* sprite, Vec2* position, float width, float height) {
-        this->position = position;
+    Character(Sprite* sprite, Vec2 position, float width, float height) {
+        this->Position = position;
         this->width = width;
         this->height = height;
         this->sprite = sprite;
     }
     void Draw() {
         SDL_Rect* target;
-        sprite->Draw(position->x, position->y, width, height);
+        sprite->Draw(Position.x, Position.y, width, height);
     }
+    Vec2 Position;
     private:
     Sprite* sprite;
-    Vec2* position;
+    float speed;
     float width;
     float height; 
 };
