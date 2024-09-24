@@ -14,6 +14,11 @@ class Vec2 {
         this->x = x;
         this->y = y;
     }
+    // Create a unit vector from an angle in radians
+    Vec2(float angle) {
+        x = std::cos(angle);
+        y = std::sin(angle);
+    }
     Vec2(Vec2& v)
     {
         x = v.x;

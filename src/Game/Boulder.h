@@ -47,8 +47,10 @@ class Boulder {
                 break;
             }
         }
+        height = source.h / 10.;
+        width = source.w / 10.;
         sprite = new Sprite(Values.Spritesheet, source);
-        boulderCharacter = new Character(sprite, position, static_cast<float>(source.w) / source.h, 1);
+        boulderCharacter = new Character(sprite, position, width, height);
     }
     void Draw() {
         boulderCharacter->Draw();
@@ -62,6 +64,8 @@ class Boulder {
         delete boulderCharacter;
     }
     private:
+    float width;
+    float height;
     Sprite* sprite;
     Character* boulderCharacter;
 };
