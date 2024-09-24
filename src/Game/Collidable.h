@@ -23,13 +23,14 @@ Vec2 lineIntersection(float m1, float b1, float m2, float b2) {
  */
 bool lineSegmentCollidesRectangle(Vec2& pos, float w, float h, float theta, Vec2& l1, Vec2& l2) {
     // Ensure that l1 is the left vector
+    Vec2 leftL = l1;
+    Vec2 rightL = l2;
     if (l1.x > l2.x) {
-        Vec2& temp = l1;
-        l1 = l2;
-        l2 = temp;
+        leftL = l2;
+        rightL = l1;
     }
     float m = (l2.y - l1.y) / (l2.x - l1.x);
-    float b = l1.y - m * l1.x;
+    float b = leftL.y - m * leftL.x;
     Vec2 horizDirection(theta);
     Vec2 vertDirection(theta + M_PI / 2);
     float mHoriz = horizDirection.y / horizDirection.x;
@@ -57,7 +58,7 @@ bool lineSegmentCollidesRectangle(Vec2& pos, float w, float h, float theta, Vec2
         leftX = pos12.x;
         rightX = pos11.x;
     }
-    if (horizInt1.x >= leftX && horizInt1.x <= rightX && horizInt1.x >= l1.x && horizInt1.x <= l2.x) {
+    if (horizInt1.x >= leftX && horizInt1.x <= rightX && horizInt1.x >= leftL.x && horizInt1.x <= rightL.x) {
         return true;
     }
     
@@ -67,7 +68,7 @@ bool lineSegmentCollidesRectangle(Vec2& pos, float w, float h, float theta, Vec2
         leftX = pos22.x;
         rightX = pos21.x;
     }
-    if (horizInt2.x >= leftX && horizInt2.x <= rightX && horizInt2.x >= l1.x && horizInt2.x <= l2.x) {
+    if (horizInt2.x >= leftX && horizInt2.x <= rightX && horizInt2.x >= leftL.x && horizInt2.x <= rightL.x) {
         return true;
     }
     leftX = pos11.x;
@@ -76,7 +77,7 @@ bool lineSegmentCollidesRectangle(Vec2& pos, float w, float h, float theta, Vec2
         leftX = pos21.x;
         rightX = pos11.x;
     }
-    if (vertInt1.x >= leftX && vertInt2.x <= rightX && vertInt1.x >= l1.x && vertInt1.x <= l2.x) {
+    if (vertInt1.x >= leftX && vertInt2.x <= rightX && vertInt1.x >= leftL.x && vertInt1.x <= rightL.x) {
         return true;
     }
     leftX = pos12.x;
@@ -85,7 +86,7 @@ bool lineSegmentCollidesRectangle(Vec2& pos, float w, float h, float theta, Vec2
         leftX = pos22.x;
         rightX = pos12.x;
     }
-    if (vertInt2.x >= leftX && vertInt2.x <= rightX && vertInt2.x >= l1.x && vertInt2.x <= l2.x) {
+    if (vertInt2.x >= leftX && vertInt2.x <= rightX && vertInt2.x >= leftL.x && vertInt2.x <= rightL.x) {
         return true;
     }
 

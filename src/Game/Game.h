@@ -115,8 +115,8 @@ class Game {
         player->Move(movementVector);
         Values.MovementLastFrame = movementVector;
         background->Update();
-        bool coll = player->Colliding(*boulder);
-        std::cout << coll << std::endl;
+
+        
     }
     void Draw() {
         SDL_RenderClear(Values.Renderer);

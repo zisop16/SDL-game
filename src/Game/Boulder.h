@@ -6,7 +6,7 @@
 #include "Character.h"
 #include "Collidable.h"
 
-class Boulder : public Collidable {
+class Boulder : public Character {
     public:
     // There are 5 boulders in the spritesheet, so type ranges from 0->5
     Boulder(Vec2 position, Vec2 velocity, int type) {
@@ -53,23 +53,17 @@ class Boulder : public Collidable {
         rotation = 0;
         this->position = position;
         sprite = new Sprite(Values.Spritesheet, source);
-        boulderCharacter = new Character(sprite, position, width, height);
     }
     void Draw() {
-        boulderCharacter->Draw();
+        Character::Draw();
     }
     void Update() {
-        boulderCharacter->Position += Velocity * Values.DeltaTime;
-        position = boulderCharacter->Position;
+        position += Velocity * Values.DeltaTime;
     }
     Vec2 Velocity;
     ~Boulder() {
         delete sprite;
-        delete boulderCharacter;
     }
-    private:
-    Sprite* sprite;
-    Character* boulderCharacter;
 };
 
 #endif

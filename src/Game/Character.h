@@ -5,25 +5,26 @@
 #include <SDL2/SDL_image.h>
 #include "Sprite.h"
 #include "Vec2.h"
+#include "Collidable.h"
 
-class Character {
+class Character: public Collidable {
     public:
+    Character() {
+
+    }
     Character(Sprite* sprite, Vec2 position, float width, float height) {
-        this->Position = position;
+        this->position = position;
         this->width = width;
         this->height = height;
+        this->rotation = 0;
         this->sprite = sprite;
     }
     void Draw() {
-        SDL_Rect* target;
-        sprite->Draw(Position.x, Position.y, width, height);
+        sprite->Draw(position.x, position.y, width, height, rotation);
     }
-    Vec2 Position;
-    private:
     Sprite* sprite;
+    private:
     float speed;
-    float width;
-    float height; 
 };
 
 #endif
