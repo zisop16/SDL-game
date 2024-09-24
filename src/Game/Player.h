@@ -7,13 +7,13 @@
 
 class Player {
     public:
-    Player(SDL_Texture* spritesheet) {
+    Player() {
         SDL_Rect playerSpriteSource;
         playerSpriteSource.x = 0;
         playerSpriteSource.y = 25;
         playerSpriteSource.w = 16;
         playerSpriteSource.h = 6;
-        sprite = new Sprite(spritesheet, playerSpriteSource);
+        sprite = new Sprite(Values.Spritesheet, playerSpriteSource);
         Vec2 initialPosition (8, 2);
         float height = .5;
         float width = height * 16. / 6;
@@ -24,12 +24,16 @@ class Player {
     void Draw() {
         playerCharacter->Draw();
     }
+    void Update() {
+        
+    }
     // direction is a unit vector pointing in a cardinal direction
     void Move(Vec2 direction) {
         playerCharacter->Position += direction * speed * Values.DeltaTime;
     }
     ~Player() {
         delete sprite;
+        delete playerCharacter;
     }
     float speed;
 

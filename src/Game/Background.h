@@ -6,15 +6,16 @@
 
 class Background {
     public:
-    Background(SDL_Texture* tex) {
+    Background() {
+        SDL_Texture* tex = Values.BackgroundTexture;
         width = 3000;
         height = 1500;
         SDL_Rect source;
         source.x = 0; source.y = 0;
         source.w = width; source.h = height;
         sprite = new Sprite(tex, source);
-        velocity.x = 1;
-        velocity.y = .4;
+        velocity.x = .5;
+        velocity.y = -2;
     }
     void Draw() {
         // Assuming background sprite is 3000x1500, then it is 9 meters tall and 18 meters wide

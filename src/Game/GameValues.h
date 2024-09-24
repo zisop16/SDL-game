@@ -8,6 +8,8 @@
 class GameValues {
     public:
     SDL_Renderer* Renderer;
+    SDL_Texture* BackgroundTexture;
+    SDL_Texture* Spritesheet;
     int Width;
     int Height;
     Vec2 MovementLastFrame;

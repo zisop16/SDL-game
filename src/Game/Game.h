@@ -7,6 +7,7 @@
 #include "Player.h"
 #include "Background.h"
 #include "GameValues.h"
+#include "Boulder.h"
 #include <filesystem>
 #include "Vec2.h"
 
@@ -40,10 +41,13 @@ class Game {
         }
         std::string sprites = SPRITES_LOCATION + "pico8_invaders_sprites.png";
         std::string stars = SPRITES_LOCATION + "background.png";
-        SDL_Texture* spritesheet = IMG_LoadTexture(Values.Renderer, sprites.c_str());
-        SDL_Texture* starTexture = IMG_LoadTexture(Values.Renderer, stars.c_str());
-        player = new Player(spritesheet);
-        background = new Background(starTexture);
+        Values.Spritesheet = IMG_LoadTexture(Values.Renderer, sprites.c_str());
+        Values.BackgroundTexture = IMG_LoadTexture(Values.Renderer, stars.c_str());
+        player = new Player();
+        background = new Background();
+        Vec2 boulderVelocity(0, 0);
+        Vec2 boulderPosition(5, 4);
+        boulder = new Boulder(boulderPosition, boulderVelocity, 4);
         
         return true;
 
@@ -89,6 +93,7 @@ class Game {
 
         background->Draw();
         player->Draw();
+        boulder->Draw();
 
         SDL_RenderPresent(Values.Renderer);
         
@@ -119,12 +124,15 @@ class Game {
 
     ~Game() {
         delete player;
+        delete background;
+        delete boulder;
     }
     
     private:
     SDL_Window* window;
     Player* player;
     Background* background;
+    Boulder* boulder;
 };
 
 #endif
