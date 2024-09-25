@@ -61,6 +61,10 @@ class Vec2 {
         Vec2 added(x + other.x, y + other.y);
         return added;
     }
+    Vec2 operator -() {
+        Vec2 negative(-x, -y);
+        return negative;
+    }
     Vec2 operator * (const float scalar) {
         Vec2 mult(x * scalar, y * scalar);
         return mult;

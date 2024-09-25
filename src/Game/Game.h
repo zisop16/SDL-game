@@ -11,6 +11,7 @@
 #include <filesystem>
 #include "Vec2.h"
 #include "Projectile.h"
+#include "UserInterface.h"
 #include <stdlib.h>
 #include <time.h>
 #include <stdio.h>
@@ -19,12 +20,9 @@ const std::string SPRITES_LOCATION = "./sprites/";
 
 class Game {
     public:
-    Game() {
-
-    }
     
-    bool Initialize() {
-        srand((unsigned)time(NULL));
+    bool Initialize(std::mt19937 RNG) {
+        Values.gen = RNG;
         SDL_Init(SDL_INIT_EVERYTHING);
         SDL_DisplayMode DM;
         SDL_GetCurrentDisplayMode(0, &DM);
@@ -48,19 +46,21 @@ class Game {
         std::string stars = SPRITES_LOCATION + "background.png";
         Values.Spritesheet = IMG_LoadTexture(Values.Renderer, sprites.c_str());
         Values.BackgroundTexture = IMG_LoadTexture(Values.Renderer, stars.c_str());
+
         player = new Player();
         background = new Background();
-        Vec2 boulderPosition(5, 4);
-        boulder = new Boulder();
-        boulder->position = boulderPosition;
-        proj = new Projectile(1);
-        proj->position.x = 5;
-        proj->position.y = 5;
+        UI = new UserInterface();
+
+        // One boulder per MeanBoulderTime sec
+        Values.MeanBoulderTime = .5;
+        Values.NextBoulder = Values.RandExp(1/Values.MeanBoulderTime);
+
+        Values.Hearts = 3;
         
         return true;
 
     }
-    void Update() {
+    void HandleInputs() {
         const Uint8* keyPresses = SDL_GetKeyboardState(NULL);
         int mouseX, mouseY;
         Uint32 mouseButtons = SDL_GetMouseState(&mouseX, &mouseY);
@@ -71,80 +71,150 @@ class Game {
         if (!Values.LeftClick) {
             Values.LeftClickRegistered = false;
         }
-        Vec2 position(mouseX, mouseY);
+        // MouseY is inversed so that 0 == bottom of screen, 9 == top of screen
+        // We scale both coordinates so that x == 0 -> 16, y == 0 -> 9
+        Vec2 position(mouseX * 16. / Values.Width, 9 - (mouseY * 9. / Values.Height));
         Values.MousePosition = position;
         
         bool moveUp = keyPresses[SDL_SCANCODE_W];
         bool moveDown = keyPresses[SDL_SCANCODE_S];
         bool moveLeft = keyPresses[SDL_SCANCODE_A];
         bool moveRight = keyPresses[SDL_SCANCODE_D];
-        Vec2 movementVector;
         bool movingUp = Values.MovementLastFrame.y  > 0;
         bool movingDown = Values.MovementLastFrame.y  < 0;
         bool movingRight = Values.MovementLastFrame.x > 0;
         bool movingLeft = Values.MovementLastFrame.x < 0;
+        Values.PlayerMovementVector = Zero;
         if (moveUp && moveDown) {
             if (!Values.VerticalMovementSwapped) {
                 // If we were moving down last frame, we will swap directions
                 if (Values.MovementLastFrame.y < 0) {
-                    movementVector.y = 1;
+                    Values.PlayerMovementVector.y = 1;
                 } else {
-                    movementVector.y = -1;
+                    Values.PlayerMovementVector.y = -1;
                 }
                 Values.VerticalMovementSwapped = true;
             } else {
                 if (Values.MovementLastFrame.y < 0) {
-                    movementVector.y = -1;
+                    Values.PlayerMovementVector.y = -1;
                 } else {
-                    movementVector.y = +1;
+                    Values.PlayerMovementVector.y = +1;
                 }
             }
         } else if (moveUp) {
-            movementVector.y = 1;
+            Values.PlayerMovementVector.y = 1;
             Values.VerticalMovementSwapped = false;
         } else if (moveDown) {
-            movementVector.y = -1;
+            Values.PlayerMovementVector.y = -1;
             Values.VerticalMovementSwapped = false;
         }
         if (moveLeft && moveRight) {
             if (!Values.HorizontalMovementSwapped) {
                 if (Values.MovementLastFrame.x < 0) {
-                    movementVector.x = 1;
+                    Values.PlayerMovementVector.x = 1;
                 } else {
-                    movementVector.x = -1;
+                    Values.PlayerMovementVector.x = -1;
                 }
                 Values.HorizontalMovementSwapped = true;
             // If we have already swapped movement direction, we will persist the movement direction we swapped to
             } else {
                 if (Values.MovementLastFrame.x < 0) {
-                    movementVector.x = -1;
+                    Values.PlayerMovementVector.x = -1;
                 } else {
-                    movementVector.x = 1;
+                    Values.PlayerMovementVector.x = 1;
                 }
             }
         } else if (moveLeft) {
-            movementVector.x = -1;
+            Values.PlayerMovementVector.x = -1;
             Values.HorizontalMovementSwapped = false;
         } else if (moveRight) {
-            movementVector.x = 1;
+            Values.PlayerMovementVector.x = 1;
             Values.HorizontalMovementSwapped = false;
         }
-        if (movementVector != Zero) {
-            movementVector.Normalize();
+        if (Values.PlayerMovementVector != Zero) {
+            Values.PlayerMovementVector.Normalize();
         }
-        player->Move(movementVector);
-        Values.MovementLastFrame = movementVector;
+    }
+    void HandleBoulders() {
+        Values.NextBoulder -= Values.DeltaTime;
+        if (Values.NextBoulder <= 0) {
+            Values.NextBoulder = Values.RandExp(1/Values.MeanBoulderTime);
+            FireBoulder();
+        }
+        std::vector<int> toErase;
+        for (int i = 0; i < boulders.size(); i++) {
+            Boulder* b = boulders.at(i);
+            b->Update();
+            if (b->OffScreen()) {
+                toErase.push_back(i);
+            }
+        }
+        for (int ind : toErase) {
+            boulders.erase(std::next(boulders.begin(), ind));
+        }
+    }
+    void FireBoulder() {
+        float lowerBound = 4;
+        float upperBound = 6;
+        float speed = Values.RandUnif(lowerBound, upperBound);
+        int side = Values.RandInt(0, 2);
+        float direction = 0;
+        // We don't want boulders flying parallel to the screen, so we will have a buffer at the edge of each angle
+        // We will make angles uniformly distributed, and spawn positions normally distributed to be more likely to spawn
+        // At the center of the screen side
+        float buffer = .3;
+        Boulder* toFire = new Boulder();
+        toFire->rotation = Values.RandUnif(0, 2 * M_PI);
+        toFire->AngularVelocity = Values.RandNormal(0, 2);
+        float x;
+        float y;
+        switch(side) {
+            case 0: {
+                // left
+                direction = Values.RandUnif(-M_PI / 2 + buffer, M_PI / 2 - buffer);
+                y = Values.RandNormal(4.5, .5);
+                x = -toFire->width/2;
+                break;
+            }
+            case 1: {
+                // up
+                direction = Values.RandUnif(M_PI + buffer, 2 * M_PI - buffer);
+                x = Values.RandNormal(8, .3);
+                y = toFire->height/2 + 9;
+                break;
+            }
+            case 2: {
+                // right
+                direction = Values.RandUnif(M_PI / 2 + buffer, 3 * M_PI / 2 - buffer);
+                y = Values.RandNormal(4.5, .5);
+                x = 16 + toFire->width/2;
+                break;
+            }
+        }
+        toFire->position.x = x;
+        toFire->position.y = y;
+        Vec2 directionVector(direction);
+        toFire->Velocity = directionVector * speed;
+        boulders.push_back(toFire);
+    }
+    void Update() {
+        HandleInputs();
+        HandleBoulders();
+
         background->Update();
+        player->Update();
 
-
+        Values.MovementLastFrame = Values.PlayerMovementVector;
     }
     void Draw() {
         SDL_RenderClear(Values.Renderer);
 
         background->Draw();
         player->Draw();
-        boulder->Draw();
-        proj->Draw();
+        for (Boulder* b : boulders) {
+            b->Draw();
+        }
+        UI->Draw();
 
         SDL_RenderPresent(Values.Renderer);
         
@@ -179,16 +249,15 @@ class Game {
     ~Game() {
         delete player;
         delete background;
-        delete boulder;
-        delete proj;
+        delete UI;
     }
     
     private:
     SDL_Window* window;
+    UserInterface* UI;
     Player* player;
     Background* background;
-    Boulder* boulder;
-    Projectile* proj;
+    std::vector<Boulder*> boulders;
 };
 
 #endif

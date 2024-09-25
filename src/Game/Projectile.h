@@ -29,10 +29,19 @@ class Projectile : public Character {
         width = scale;
         position = Zero;
         rotation = 0;
+        velocity = Zero;
+        speed = 5;
     }
     ~Projectile() {
         delete sprite;
     }
+    void Update() {
+        position += velocity * Values.DeltaTime;
+    }
+    Vec2 velocity;
+    float speed;
+    private:
+    int type;
 };
 
 #endif

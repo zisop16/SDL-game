@@ -152,6 +152,21 @@ class Collidable {
     bool Colliding(Collidable& other) {
         return rectangleCollide(position, other.position, width, other.width, height, other.height, rotation, other.rotation);
     }
+    bool TouchingBottom() {
+        return (position.y - height/2) <= 0;
+    }
+    bool TouchingTop() {
+        return (position.y + height/2) >= 9;
+    }
+    bool TouchingLeft() {
+        return (position.x - width/2) <= 0;
+    }
+    bool TouchingRight() {
+        return (position.x + width/2) >= 16;
+    }
+    bool CollidingScreen() {
+        return TouchingBottom() || TouchingTop() || TouchingLeft() || TouchingRight();
+    }
 };
 
 #endif

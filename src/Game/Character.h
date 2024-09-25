@@ -22,6 +22,12 @@ class Character: public Collidable {
     void Draw() {
         sprite->Draw(position.x, position.y, width, height, rotation);
     }
+    void Update() {
+
+    }
+    bool OffScreen() {
+        return position.x < -width/2 || position.x > 16 + width/2 || position.y < -height/2 || position.y > 9 + height/2;
+    }
     Sprite* sprite;
     private:
     float speed;

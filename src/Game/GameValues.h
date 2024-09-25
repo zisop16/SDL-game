@@ -4,6 +4,8 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include "Vec2.h"
+#include <random>
+
 
 class GameValues {
     public:
@@ -12,9 +14,11 @@ class GameValues {
     SDL_Texture* Spritesheet;
     int Width;
     int Height;
+    int Hearts;
     bool LeftClick;
     bool LeftClickRegistered;
     Vec2 MousePosition;
+    Vec2 PlayerMovementVector;
     Vec2 MovementLastFrame;
     bool VerticalMovementSwapped;
     bool HorizontalMovementSwapped;
@@ -22,6 +26,9 @@ class GameValues {
     float LastFrameTime;
     float CurrentTime;
     float DeltaTime;
+    float NextBoulder;
+    float MeanBoulderTime;
+    std::mt19937 gen;
 
     /**
      * We will force the game to be 16:9, 16 meters wide and 9 meters tall
@@ -46,12 +53,26 @@ class GameValues {
         pixels.h = heightPixels;
         return pixels;
     }
+    
+    int RandInt(int floor, int max) {
+        std::uniform_int_distribution distrib(floor, max);
+        return distrib(gen);
+    }
+    float RandExp(float lambda) {
+        std::exponential_distribution distrib(lambda);
+        return distrib(gen);
+    }
+    float RandUnif(float floor, float max) {
+        std::uniform_real_distribution distrib(floor, max);
+        return distrib(gen);
+    }
+    float RandNormal(float mean, float stdev) {
+        std::normal_distribution distrib(mean, stdev);
+        return distrib(gen);
+    }
 };
 
-int Random(int floor, int max) {
-    int range = max - floor + 1;
-    return rand() % range + floor;
-}
+
 
 GameValues Values;
 
