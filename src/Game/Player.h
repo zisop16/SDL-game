@@ -19,7 +19,7 @@ class Player : public Character {
         playerSpriteSource.h = 6;
         sprite = new Sprite(Values.Spritesheet, playerSpriteSource);
         position.x = 8;
-        position.y = 2;
+        position.y = 4.5;
         float scale = .5;
         height = scale;
         width = scale * 16. / 6;
@@ -123,7 +123,7 @@ class Player : public Character {
      */
     void ApplyDrag() {
         float maxSpeed = 8;
-        float exponent = 1.5;
+        float exponent = 1.25;
         float dragConstant = acceleration * std::pow(maxSpeed, -exponent);
         Vec2 dragForce = -velocity * dragConstant * std::pow(velocity.Length(), .5);
         velocity += dragForce * Values.DeltaTime;

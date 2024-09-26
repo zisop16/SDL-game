@@ -40,6 +40,7 @@ class GameValues {
     float NextBoulder;
     float MaxBoulderTime;
     float MinBoulderTime;
+    float LastResetTime;
     // Amount of time between flashes when player has been hit by a boulder
     float FlashTime;
     // Amount of time player spends flashing invulnerable after being hit

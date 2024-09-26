@@ -53,11 +53,16 @@ class Game {
         Values.BackgroundTexture = IMG_LoadTexture(Values.Renderer, stars.c_str());
         Values.Gameover = IMG_LoadTexture(Values.Renderer, gameover.c_str());
         Values.GameoverRespawn = IMG_LoadTexture(Values.Renderer, respawn.c_str());
-        InitializeGameObjects();
         background = new Background();
-
         Values.MaxBoulderTime = .5;
         Values.MinBoulderTime = .17;
+        Values.CurrentTime = 0;
+        Values.LastFPSCountTime = 0;
+        Values.InvulnerabilityTime = 2;
+        Values.FlashTime = Values.InvulnerabilityTime / 10;
+
+        InitializeGameObjects();
+        
         return true;
     }
     void DumpOldObjects() {
@@ -74,17 +79,13 @@ class Game {
 
         Values.NextBoulder = Values.RandExp(1/Values.MaxBoulderTime);
 
-        Values.Hearts = 4;
+        Values.Hearts = 3;
         Values.ResetGame = false;
         
-        Values.CurrentTime = 0;
-        Values.LastFPSCountTime = 0;
         // very small number so that the player doesnt flash at the beginning
         // Of the game
         Values.PlayerHitTime = -1000;
-        Values.InvulnerabilityTime = 2;
-        Values.FlashTime = Values.InvulnerabilityTime / 10;
-        
+        Values.LastResetTime = Values.CurrentTime;
     }
 
     void HandleInputs() {
@@ -169,7 +170,7 @@ class Game {
             float endTime = 100;
             float k = (Values.MaxBoulderTime - Values.MinBoulderTime) / endTime;
             // Linear decrease y = y_0 - k * t
-            float updatedMean = Values.MaxBoulderTime - k * Values.CurrentTime;
+            float updatedMean = Values.MaxBoulderTime - k * (Values.CurrentTime - Values.LastResetTime);
             if (updatedMean < Values.MinBoulderTime) {
                 updatedMean = Values.MinBoulderTime;
             }
