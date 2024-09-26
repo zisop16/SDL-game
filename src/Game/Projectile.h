@@ -30,7 +30,7 @@ class Projectile : public Character {
         position = Zero;
         rotation = 0;
         velocity = Zero;
-        speed = 5;
+        speed = 27;
     }
     ~Projectile() {
         delete sprite;

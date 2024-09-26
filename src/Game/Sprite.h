@@ -20,6 +20,9 @@ class Sprite {
         SDL_Rect target = Values.MetersToPixels(x, y, width, height);
         SDL_RenderCopyEx(Values.Renderer, tex, &source, &target, -180. / M_PI * angle, NULL, SDL_FLIP_NONE);
     }
+    void SetTexture(SDL_Texture* tex) {
+        this->tex = tex;
+    }
     private:
     SDL_Rect source;
     SDL_Texture* tex;

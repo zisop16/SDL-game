@@ -28,14 +28,16 @@ class Player : public Character {
         acceleration = 16;
         lastShotTime = 0;
         // 1 shot per cooldown(seconds)
-        shotCooldown = .5;
+        shotCooldown = .25;
     }
-    
     void Draw() {
-        for (int i = 0; i < bullets.size(); i++) {
-            bullets.at(i)->Draw();
+        for (int i = 0; i < Bullets.size(); i++) {
+            Bullets.at(i)->Draw();
         }
-        Character::Draw();
+        bool dontDraw = Values.PlayerDead() || Values.PlayerInvulnerability() && !Values.FlashState();
+        if (!dontDraw) {
+            Character::Draw();
+        }
     }
     void Shoot() {
         lastShotTime = Values.CurrentTime;
@@ -60,26 +62,36 @@ class Player : public Character {
         Vec2 direction(angle);
         fired->velocity = direction * fired->speed;
 
-        bullets.push_back(fired);
+        Bullets.push_back(fired);
     }
     bool ShotOffCooldown() {
         return (Values.CurrentTime - lastShotTime) >= shotCooldown;
     }
+    void ChargeShot() {
+        lastShotTime = 0;
+    }
+    void DeleteProjectile(int ind) {
+        Projectile* erased = Bullets.at(ind);
+        Bullets.erase(std::next(Bullets.begin(), ind));
+        delete erased;
+    }
     void Update() {
-        Move();
-        if (Values.LeftClick && !Values.LeftClickRegistered && ShotOffCooldown()) {
-            Values.LeftClickRegistered = true;
-            Shoot();
+        if (!Values.PlayerDead()) {
+            Move();
+            if (Values.LeftClick && !Values.LeftClickRegistered && ShotOffCooldown()) {
+                Values.LeftClickRegistered = true;
+                Shoot();
+            }
         }
         std::vector<int> toErase;
-        for (int i = bullets.size() - 1; i >= 0; i--) {
-            bullets.at(i)->Update();
-            if (bullets.at(i)->OffScreen()) {
+        for (int i = Bullets.size() - 1; i >= 0; i--) {
+            Bullets.at(i)->Update();
+            if (Bullets.at(i)->OffScreen()) {
                 toErase.push_back(i);
             }
         }
         for (int ind : toErase) {
-            bullets.erase(std::next(bullets.begin(), ind));
+            DeleteProjectile(ind);
         }
     }
     void Move() {
@@ -118,18 +130,16 @@ class Player : public Character {
     }
     ~Player() {
         delete sprite;
-        for (int i = 0; i < bullets.size(); i++) {
-            delete bullets.at(i);
+        for (int i = 0; i < Bullets.size(); i++) {
+            delete Bullets.at(i);
         }
-        delete heartSprite;
     }
+    std::vector<Projectile*> Bullets;
     private:
     float acceleration;
     Vec2 velocity;
     float lastShotTime;
     float shotCooldown;
-    std::vector<Projectile*> bullets;
-    Sprite* heartSprite;
 };
 
 #endif

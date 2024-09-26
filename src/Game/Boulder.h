@@ -19,6 +19,7 @@ class Boulder : public Character {
                 source.y = 19;
                 source.w = 7;
                 source.h = 7;
+                Health = 1;
                 break;
             }
             case 1: {
@@ -26,6 +27,7 @@ class Boulder : public Character {
                 source.y = 16;
                 source.w = 12;
                 source.h = 12;
+                Health = 2;
                 break;
             }
             case 2: {
@@ -33,6 +35,7 @@ class Boulder : public Character {
                 source.y = 27;
                 source.w = 6;
                 source.h = 6;
+                Health = 1;
                 break;
             }
             case 3: {
@@ -40,6 +43,7 @@ class Boulder : public Character {
                 source.y = 16;
                 source.w = 11;
                 source.h = 8;
+                Health = 1;
                 break;
             }
             case 4: {
@@ -47,6 +51,7 @@ class Boulder : public Character {
                 source.y = 24;
                 source.w = 16;
                 source.h = 8;
+                Health = 2;
                 break;
             }
         }
@@ -67,6 +72,7 @@ class Boulder : public Character {
     }
     Vec2 Velocity;
     float AngularVelocity;
+    int Health;
     ~Boulder() {
         delete sprite;
     }

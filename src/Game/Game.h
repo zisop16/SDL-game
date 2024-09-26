@@ -28,8 +28,8 @@ class Game {
         SDL_GetCurrentDisplayMode(0, &DM);
         // values->Width = DM.w;
         // values->Height = DM.h;
-        Values.Width = 1600;
-        Values.Height = 900;
+        Values.Width = 1280;
+        Values.Height = 720;
         window = SDL_CreateWindow("Classic Game", 100, 100, Values.Width, Values.Height, SDL_WINDOW_ALLOW_HIGHDPI);
         // SDL_SetWindowFullscreen(window, SDL_TRUE);
         if (window == NULL) {
@@ -44,22 +44,47 @@ class Game {
         }
         std::string sprites = SPRITES_LOCATION + "pico8_invaders_sprites.png";
         std::string stars = SPRITES_LOCATION + "background.png";
+        std::string gameover = SPRITES_LOCATION + "gameover.png";
+        std::string respawn = SPRITES_LOCATION + "gameoverrespawn.png";
         Values.Spritesheet = IMG_LoadTexture(Values.Renderer, sprites.c_str());
+        Values.TintedSpritesheet = IMG_LoadTexture(Values.Renderer, sprites.c_str());
+        // This will have a darkening effect
+        SDL_SetTextureColorMod(Values.TintedSpritesheet, 100, 100, 100);
         Values.BackgroundTexture = IMG_LoadTexture(Values.Renderer, stars.c_str());
-
-        player = new Player();
+        Values.Gameover = IMG_LoadTexture(Values.Renderer, gameover.c_str());
+        Values.GameoverRespawn = IMG_LoadTexture(Values.Renderer, respawn.c_str());
+        InitializeGameObjects();
         background = new Background();
+        Values.LastFPSCountTime = 0;
+        return true;
+    }
+    void DumpOldObjects() {
+        for (Boulder* b : boulders) {
+            delete b;
+        }
+        boulders.clear();
+        delete player;
+        delete UI;
+    }
+    void InitializeGameObjects() {
+        player = new Player();
         UI = new UserInterface();
 
         // One boulder per MeanBoulderTime sec
-        Values.MeanBoulderTime = .5;
+        Values.MeanBoulderTime = .25;
         Values.NextBoulder = Values.RandExp(1/Values.MeanBoulderTime);
 
-        Values.Hearts = 3;
+        Values.Hearts = 4;
+        Values.ResetGame = false;
         
-        return true;
-
+        // very small number so that the player doesnt flash at the beginning
+        // Of the game
+        Values.PlayerHitTime = -1000;
+        Values.InvulnerabilityTime = 2;
+        Values.FlashTime = Values.InvulnerabilityTime / 10;
+        
     }
+
     void HandleInputs() {
         const Uint8* keyPresses = SDL_GetKeyboardState(NULL);
         int mouseX, mouseY;
@@ -142,22 +167,66 @@ class Game {
             FireBoulder();
         }
         std::vector<int> toErase;
-        for (int i = 0; i < boulders.size(); i++) {
+        for (int i = boulders.size() - 1; i >= 0; i--) {
             Boulder* b = boulders.at(i);
             b->Update();
             if (b->OffScreen()) {
                 toErase.push_back(i);
+                continue;
+            }
+            if (Values.PlayerDead()) {
+                continue;
+            }
+            bool hitPlayer = false;
+            bool hitBullet = false;
+            for (int i = player->Bullets.size() - 1; i >= 0; i--) {
+                Projectile* proj = player->Bullets.at(i);
+                if (b->Colliding(*proj)) {
+                    hitBullet = true;
+                    player->ChargeShot();
+                    player->DeleteProjectile(i);
+                    break;
+                }
+            }
+            if (!hitBullet && !Values.PlayerInvulnerability()) {
+                if (b->Colliding(*player)) {
+                    hitPlayer = true;
+                    Values.PlayerHitTime = Values.CurrentTime;
+                    Values.Hearts -= 1;
+                }
+            }
+            bool shouldDelete = false;
+            if (hitBullet) {
+                b->Health -= 1;
+                if (b->Health == 0) {
+                    shouldDelete = true;
+                } else {
+                    b->sprite->SetTexture(Values.TintedSpritesheet);
+                }
+            }
+            else if (hitPlayer) {
+                shouldDelete = true;
+            }
+            if (shouldDelete) {
+                toErase.push_back(i);
             }
         }
+
         for (int ind : toErase) {
-            boulders.erase(std::next(boulders.begin(), ind));
+            DeleteBoulder(ind);
         }
     }
+    void DeleteBoulder(int ind) {
+        Boulder* erased = boulders.at(ind);
+        boulders.erase(std::next(boulders.begin(), ind));
+        delete erased;
+    }
+
     void FireBoulder() {
         float lowerBound = 4;
-        float upperBound = 6;
+        float upperBound = 7;
         float speed = Values.RandUnif(lowerBound, upperBound);
-        int side = Values.RandInt(0, 2);
+        int side = Values.RandInt(0, 3);
         float direction = 0;
         // We don't want boulders flying parallel to the screen, so we will have a buffer at the edge of each angle
         // We will make angles uniformly distributed, and spawn positions normally distributed to be more likely to spawn
@@ -165,32 +234,66 @@ class Game {
         float buffer = .3;
         Boulder* toFire = new Boulder();
         toFire->rotation = Values.RandUnif(0, 2 * M_PI);
-        toFire->AngularVelocity = Values.RandNormal(0, 2);
+        toFire->AngularVelocity = Values.RandNormal(0, 6);
         float x;
         float y;
+        float minX = toFire->width/2;
+        float maxX = 16 - toFire->width/2;
+        float minY = toFire->height/2;
+        float maxY = 9 - toFire->height/2;
         switch(side) {
             case 0: {
                 // left
                 direction = Values.RandUnif(-M_PI / 2 + buffer, M_PI / 2 - buffer);
-                y = Values.RandNormal(4.5, .5);
+                y = Values.RandNormal(4.5, 3);
                 x = -toFire->width/2;
+                // Clamp y so it is not generated offscreen by normal distribution
+                if (y < minY) {
+                    y = minY;
+                } else if (y > maxY) {
+                    y = maxY;
+                }
                 break;
             }
             case 1: {
                 // up
                 direction = Values.RandUnif(M_PI + buffer, 2 * M_PI - buffer);
-                x = Values.RandNormal(8, .3);
+                x = Values.RandNormal(8, 6);
                 y = toFire->height/2 + 9;
+                // Clamp x so it is not generated offscreen by normal distribution
+                if (x < minX) {
+                    x = minX;
+                } else if (x > maxX) {
+                    x = maxX;
+                }
                 break;
             }
             case 2: {
                 // right
                 direction = Values.RandUnif(M_PI / 2 + buffer, 3 * M_PI / 2 - buffer);
-                y = Values.RandNormal(4.5, .5);
+                y = Values.RandNormal(4.5, 3);
                 x = 16 + toFire->width/2;
+                if (y < minY) {
+                    y = minY;
+                } else if (y > maxY) {
+                    y = maxY;
+                }
                 break;
             }
+            case 3: {
+                // down
+                direction = Values.RandUnif(0 + buffer, M_PI - buffer);
+                x = Values.RandNormal(8, 6);
+                y = -toFire->height/2;
+                break;
+                if (x < minX) {
+                    x = minX;
+                } else if (x > maxX) {
+                    x = maxX;
+                }
+            }
         }
+        
         toFire->position.x = x;
         toFire->position.y = y;
         Vec2 directionVector(direction);
@@ -198,11 +301,23 @@ class Game {
         boulders.push_back(toFire);
     }
     void Update() {
+        if (Values.ResetGame) {
+            DumpOldObjects();
+            InitializeGameObjects();
+        }
+        if (Values.FrameCounter == 1000) {
+            Values.FrameCounter = 0;
+            float dt = Values.CurrentTime - Values.LastFPSCountTime;
+            std::cout << 1000/dt << std::endl;
+            Values.LastFPSCountTime = Values.CurrentTime;
+        }
+        Values.FrameCounter += 1;
         HandleInputs();
         HandleBoulders();
 
         background->Update();
         player->Update();
+        UI->Update();
 
         Values.MovementLastFrame = Values.PlayerMovementVector;
     }
