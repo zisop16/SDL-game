@@ -38,8 +38,8 @@ class GameValues {
     float DeltaTime;
     // Time when next boulder will apear
     float NextBoulder;
-    // Mean time before boulders appear
-    float MeanBoulderTime;
+    float MaxBoulderTime;
+    float MinBoulderTime;
     // Amount of time between flashes when player has been hit by a boulder
     float FlashTime;
     // Amount of time player spends flashing invulnerable after being hit

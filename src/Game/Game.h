@@ -55,7 +55,9 @@ class Game {
         Values.GameoverRespawn = IMG_LoadTexture(Values.Renderer, respawn.c_str());
         InitializeGameObjects();
         background = new Background();
-        Values.LastFPSCountTime = 0;
+
+        Values.MaxBoulderTime = .5;
+        Values.MinBoulderTime = .17;
         return true;
     }
     void DumpOldObjects() {
@@ -70,13 +72,13 @@ class Game {
         player = new Player();
         UI = new UserInterface();
 
-        // One boulder per MeanBoulderTime sec
-        Values.MeanBoulderTime = .25;
-        Values.NextBoulder = Values.RandExp(1/Values.MeanBoulderTime);
+        Values.NextBoulder = Values.RandExp(1/Values.MaxBoulderTime);
 
         Values.Hearts = 4;
         Values.ResetGame = false;
         
+        Values.CurrentTime = 0;
+        Values.LastFPSCountTime = 0;
         // very small number so that the player doesnt flash at the beginning
         // Of the game
         Values.PlayerHitTime = -1000;
@@ -163,7 +165,15 @@ class Game {
     void HandleBoulders() {
         Values.NextBoulder -= Values.DeltaTime;
         if (Values.NextBoulder <= 0) {
-            Values.NextBoulder = Values.RandExp(1/Values.MeanBoulderTime);
+            // After endTime seconds, meanbouldertime = minbouldertime
+            float endTime = 100;
+            float k = (Values.MaxBoulderTime - Values.MinBoulderTime) / endTime;
+            // Linear decrease y = y_0 - k * t
+            float updatedMean = Values.MaxBoulderTime - k * Values.CurrentTime;
+            if (updatedMean < Values.MinBoulderTime) {
+                updatedMean = Values.MinBoulderTime;
+            }
+            Values.NextBoulder = Values.RandExp(1/updatedMean);
             FireBoulder();
         }
         std::vector<int> toErase;
@@ -308,7 +318,8 @@ class Game {
         if (Values.FrameCounter == 1000) {
             Values.FrameCounter = 0;
             float dt = Values.CurrentTime - Values.LastFPSCountTime;
-            std::cout << 1000/dt << std::endl;
+            // This is here for literally no purpose.
+            float fps = 1000/dt;
             Values.LastFPSCountTime = Values.CurrentTime;
         }
         Values.FrameCounter += 1;
