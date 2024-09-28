@@ -25,7 +25,7 @@ class Player : public Character {
         width = scale * 16. / 6;
         rotation = 0;
         // meters per second^2
-        acceleration = 16;
+        acceleration = 25;
         lastShotTime = 0;
         // 1 shot per cooldown(seconds)
         shotCooldown = .25;

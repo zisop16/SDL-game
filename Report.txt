@@ -1,0 +1,23 @@
+My project is an asteroids like game. The player has control over an acceleration vector influencing their ship's movement, and the goal of the game
+Is to dodge asteroids which come from all 4 sides of the screen. The player can also use their mouse to shoot asteroids.
+
+Requirements:
+
+Game loop that processes input, updates the game, and generates output:
+
+1.    (10 points) Process input: the controls must fit with the chosen game.
+My game allows the player to control their spaceship with WASD and use mouse inputs to shoot at asteroids
+I think these are reasonable and intuitive controls for the game
+
+2.    (30 points) Update the game: input is used to control the player's character, and the world is updated correctly (object positions, animations, computer-controlled entities, etc.). Must use delta time.
+As earlier mentioned, WASD inputs are used to control the character, and the world is correctly updated with velocity vectors, acceleration vectors, drag force, and angular velocity for asteroids
+All game state updates which are time-dependent correctly use delta-time to calculate the required change
+
+3.    (30 points) Generate output: generate video output using at least three sprites (including at least one animated sprite and one background sprite).
+
+There is a background sprite of a self-tiling space background, and it is drawn 4 times in a big rectangle to cover the entire game screen at all times. It also moves with a constant
+velocity to add a feeling of motion to the game as if the player is moving through space
+The player has a spaceship sprite, there are 5 asteroid sprites, and there is a sprite for projectiles
+
+4.    (30 points) Use one of the game object models discussed in class (not simply member variables like the paddle game example).
+My game uses inheritance as well as components for its object model.
