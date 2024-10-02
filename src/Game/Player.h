@@ -125,7 +125,7 @@ class Player : public Character {
         float maxSpeed = 8;
         float exponent = 1.25;
         float dragConstant = acceleration * std::pow(maxSpeed, -exponent);
-        Vec2 dragForce = -velocity * dragConstant * std::pow(velocity.Length(), .5);
+        Vec2 dragForce = -velocity * dragConstant * std::pow(velocity.Length(), exponent - 1);
         velocity += dragForce * Values.DeltaTime;
     }
     ~Player() {
